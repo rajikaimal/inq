@@ -70,8 +70,15 @@ type configuration interface {
 	readConfig() string
 }
 
-func (c configuration) readConfig() string {
-	return "TEST"
+func (c Config) readConfig() string {
+	home, err := os.UserHomeDir()
+	inqDirectory := filepath.Join(home, "inq")
+
+	jsonFile := ioutil.ReadFile(inqDirectory)
+
+	var jsonConfig Config
+
+	jsonFile.Unmarshal(jsonFile, &jsonConfig)
 }
 
 func saveLocal(topicType string) {
