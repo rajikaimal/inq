@@ -71,14 +71,16 @@ type configuration interface {
 }
 
 func (c Config) readConfig() string {
-	home, err := os.UserHomeDir()
-	inqDirectory := filepath.Join(home, "inq")
+	//home, err := os.UserHomeDir()
+	//inqDirectory := filepath.Join(home, "inq")
 
-	jsonFile := ioutil.ReadFile(inqDirectory)
+	//jsonFile, jsonFileErr := ioutil.ReadFile(inqDirectory)
 
-	var jsonConfig Config
+	//var jsonConfig Config
 
-	jsonFile.Unmarshal(jsonFile, &jsonConfig)
+	//jsonFile.Unmarshal(jsonFile, &jsonConfig)
+	// TODO
+	return ""
 }
 
 func saveLocal(topicType string) {
@@ -103,6 +105,15 @@ func saveLocal(topicType string) {
 
 	fmt.Println("Saving note")
 	cmd := exec.Command("vim", notePath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	fmt.Println(err)
+}
+
+func pushToGitHubByTopic(topic string) {
+	fmt.Println("Pushing to GitHub")
+	cmd := exec.Command("git push", filepath.Join(topic))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
@@ -153,6 +164,8 @@ func main() {
 			}
 		} else if firstArg == "save" {
 			saveLocal(topicType)
+		} else if firstArg == "push" {
+			pushToGitHub()
 		}
 
 		return nil
