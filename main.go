@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-type Config struct {
+type config struct {
 	GitHub string
 }
 
@@ -39,11 +39,11 @@ func runConfigure(githubConfig string) (err error) {
 
 	fmt.Println("Creating config.json ...")
 
-	configJson := Config{
+	configJSON := config{
 		GitHub: githubConfig,
 	}
 
-	jsonFile, err := json.MarshalIndent(configJson, "", "    ")
+	jsonFile, err := json.MarshalIndent(configJSON, "", "    ")
 
 	if err != nil {
 		fmt.Println("Error when writing to config file")
@@ -70,7 +70,7 @@ type configuration interface {
 	readConfig() string
 }
 
-func (c Config) readConfig() string {
+func (c config) readConfig() string {
 	//home, err := os.UserHomeDir()
 	//inqDirectory := filepath.Join(home, "inq")
 
