@@ -17,6 +17,9 @@ type config struct {
 	GitHub string
 }
 
+var homeDir, err = os.UserHomeDir()
+var inqDir = filepath.Join(homeDir, "inq-notes")
+
 func runConfigure(githubConfig string) (err error) {
 	if githubConfig == "default" {
 		return nil
@@ -93,10 +96,11 @@ func saveLocal(topicType string) {
 	if homeDirErr != nil {
 		return
 	}
-	inqDirectory := home + ""
+
+	inqDirectory := home + "/inq-notes"
 
 	if topicType == "root" {
-		notePath = filepath.Join(notePath)
+		notePath = filepath.Join(inqDirectory, formattedDate)
 		notePath = notePath + ".md"
 	} else {
 		notePath = filepath.Join(inqDirectory, topicType, formattedDate)
@@ -104,7 +108,19 @@ func saveLocal(topicType string) {
 	}
 
 	fmt.Println("Saving note")
+	fmt.Println("NotePath", notePath)
 	cmd := exec.Command("vim", notePath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	fmt.Println(err)
+}
+
+func commitChanges() {
+	fmt.Println("Commiting changes")
+	fmt.Println(inqDir)
+	cmd := exec.Command("git add --all")
+	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
@@ -164,6 +180,7 @@ func main() {
 			}
 		} else if firstArg == "save" {
 			saveLocal(topicType)
+			commitChanges()
 		} else if firstArg == "push" {
 			pushToGitHub()
 		}
