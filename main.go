@@ -65,27 +65,6 @@ func runConfigure(githubConfig string) (err error) {
 	return nil
 }
 
-func saveOnGitHub() string {
-	return "Saving on GitHub"
-}
-
-type configuration interface {
-	readConfig() string
-}
-
-func (c config) readConfig() string {
-	//home, err := os.UserHomeDir()
-	//inqDirectory := filepath.Join(home, "inq")
-
-	//jsonFile, jsonFileErr := ioutil.ReadFile(inqDirectory)
-
-	//var jsonConfig Config
-
-	//jsonFile.Unmarshal(jsonFile, &jsonConfig)
-	// TODO
-	return ""
-}
-
 func saveLocal(topicType string) {
 	var notePath string
 
@@ -108,32 +87,39 @@ func saveLocal(topicType string) {
 	}
 
 	fmt.Println("Saving note")
-	fmt.Println("NotePath", notePath)
 	cmd := exec.Command("vim", notePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	fmt.Println(err)
+	if err == nil {
+		fmt.Println(err)
+	}
+}
+
+func stageChanges() {
+	fmt.Println("Staging changes")
+	fmt.Println(inqDir)
+	cmd := exec.Command("git", "add", "--all")
+	cmd.Dir = inqDir
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err == nil {
+		fmt.Println(err)
+	}
 }
 
 func commitChanges() {
 	fmt.Println("Commiting changes")
 	fmt.Println(inqDir)
-	cmd := exec.Command("git add --all")
+	cmd := exec.Command("git", "commit")
 	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	fmt.Println(err)
-}
-
-func pushToGitHubByTopic(topic string) {
-	fmt.Println("Pushing to GitHub")
-	cmd := exec.Command("git push", filepath.Join(topic))
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
-	fmt.Println(err)
+	if err == nil {
+		fmt.Println(err)
+	}
 }
 
 func pushToGitHub() {
@@ -141,7 +127,9 @@ func pushToGitHub() {
 	formattedDate := dt.Format("01-02-2006")
 
 	fmt.Println("Pushing to GitHub")
-	cmd := exec.Command("git push", formattedDate+".md")
+	fmt.Println(formattedDate)
+	cmd := exec.Command("git", "push", "origin", "master")
+	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
@@ -180,6 +168,7 @@ func main() {
 			}
 		} else if firstArg == "save" {
 			saveLocal(topicType)
+			stageChanges()
 			commitChanges()
 		} else if firstArg == "push" {
 			pushToGitHub()
