@@ -91,49 +91,45 @@ func saveLocal(topicType string) {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	if err == nil {
+	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func stageChanges() {
 	fmt.Println("Staging changes")
-	fmt.Println(inqDir)
 	cmd := exec.Command("git", "add", "--all")
 	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	if err == nil {
+	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func commitChanges() {
 	fmt.Println("Commiting changes")
-	fmt.Println(inqDir)
 	cmd := exec.Command("git", "commit")
 	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	if err == nil {
+	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func pushToGitHub() {
-	dt := time.Now()
-	formattedDate := dt.Format("01-02-2006")
-
 	fmt.Println("Pushing to GitHub")
-	fmt.Println(formattedDate)
 	cmd := exec.Command("git", "push", "origin", "master")
 	cmd.Dir = inqDir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func main() {
