@@ -65,7 +65,7 @@ func runConfigure(githubConfig string) (err error) {
 	return nil
 }
 
-func saveLocal(topicType string) {
+func saveLocal(topicType string) error {
 	var notePath string
 
 	dt := time.Now()
@@ -73,7 +73,7 @@ func saveLocal(topicType string) {
 	home, homeDirErr := os.UserHomeDir()
 
 	if homeDirErr != nil {
-		return
+		return homeDirErr
 	}
 
 	inqDirectory := home + "/inq-notes"
@@ -93,10 +93,13 @@ func saveLocal(topicType string) {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
-func stageChanges() {
+func stageChanges() error {
 	fmt.Println("Staging changes")
 	cmd := exec.Command("git", "add", "--all")
 	cmd.Dir = inqDir
@@ -105,10 +108,13 @@ func stageChanges() {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
-func commitChanges() {
+func commitChanges() error {
 	fmt.Println("Commiting changes")
 	cmd := exec.Command("git", "commit")
 	cmd.Dir = inqDir
@@ -117,10 +123,13 @@ func commitChanges() {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
-func pushToGitHub() {
+func pushToGitHub() error {
 	fmt.Println("Pushing to GitHub")
 	cmd := exec.Command("git", "push", "origin", "master")
 	cmd.Dir = inqDir
@@ -129,7 +138,10 @@ func pushToGitHub() {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
 func main() {
@@ -155,6 +167,46 @@ func main() {
 		},
 	}
 
+	app.Commands = []cli.Command{
+		{
+			Name:    "save",
+			Aliases: []string{"a"},
+			Usage:   "Saves a note",
+			Action: func(c *cli.Context) error {
+				saveLocalErr := saveLocal(topicType)
+				if saveLocalErr == nil {
+					stageChangesErr := stageChanges()
+					if stageChangesErr == nil {
+						commitChangesErr := commitChanges()
+						if commitChangesErr == nil {
+							return nil
+						} else {
+							return commitChangesErr
+						}
+					} else {
+						return stageChangesErr
+					}
+				} else {
+					return saveLocalErr
+				}
+			},
+		},
+		{
+			Name:    "push",
+			Aliases: []string{"a"},
+			Usage:   "Push pending changes to GitHub",
+			Action: func(c *cli.Context) error {
+				pushToGitHubErr := pushToGitHub()
+				if pushToGitHubErr == nil {
+					fmt.Println("Pushing succesfull")
+					return nil
+				} else {
+					return pushToGitHubErr
+				}
+			},
+		},
+	}
+
 	app.Action = func(c *cli.Context) error {
 		firstArg := c.Args().Get(0)
 		if firstArg == "config" {
@@ -162,18 +214,13 @@ func main() {
 			if err == nil {
 				fmt.Println("inq configured successfuly")
 			}
-		} else if firstArg == "save" {
-			saveLocal(topicType)
-			stageChanges()
-			commitChanges()
-		} else if firstArg == "push" {
-			pushToGitHub()
 		}
 
 		return nil
 	}
 
 	err := app.Run(os.Args)
+
 	if err != nil {
 		log.Fatal(err)
 	}
