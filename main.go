@@ -21,10 +21,8 @@ var homeDir, err = os.UserHomeDir()
 var inqDir = filepath.Join(homeDir, "inq-notes")
 
 func runConfigure(githubConfig string) (err error) {
-	if githubConfig == "default" {
-		return nil
-	}
-
+	fmt.Println("Running config")
+	fmt.Println(githubConfig)
 	home, err := os.UserHomeDir()
 	inqDirectory := filepath.Join(home, "inq")
 
@@ -32,12 +30,16 @@ func runConfigure(githubConfig string) (err error) {
 		return err
 	}
 
+	fmt.Println(inqDirectory)
+
 	if _, err := os.Stat(inqDirectory); err == nil {
 		// path/to/whatever exists
+		fmt.Println(inqDirectory)
 		fmt.Println("Config directory exists ...")
 	} else if os.IsNotExist(err) {
 		// path/to/whatever does *not* exist
 		os.MkdirAll(inqDirectory, os.ModePerm)
+		fmt.Println("Dir does not exist")
 	}
 
 	fmt.Println("Creating config.json ...")
@@ -52,14 +54,23 @@ func runConfigure(githubConfig string) (err error) {
 		fmt.Println("Error when writing to config file")
 	}
 
-	_ = ioutil.WriteFile(inqDirectory+"config.json", jsonFile, 0644)
+	fmt.Println(inqDirectory + "config.json")
+
+	fileWriteErr := ioutil.WriteFile(inqDirectory+"/config.json", jsonFile, 0644)
+
+	if fileWriteErr != nil {
+		fmt.Println("Here")
+		fmt.Println(fileWriteErr)
+		return fileWriteErr
+	}
 
 	cmd := exec.Command("git", "clone", githubConfig)
 	cmd.Dir = home
 	_, cmdErr := cmd.Output()
 
 	if cmdErr != nil {
-		return nil
+		fmt.Println(cmdErr)
+		return cmdErr
 	}
 
 	return nil
@@ -170,8 +181,8 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:    "save",
-			Aliases: []string{"a"},
-			Usage:   "Saves a note",
+			Aliases: []string{"s"},
+			Usage:   "Save a note",
 			Action: func(c *cli.Context) error {
 				saveLocalErr := saveLocal(topicType)
 				if saveLocalErr == nil {
@@ -193,7 +204,7 @@ func main() {
 		},
 		{
 			Name:    "push",
-			Aliases: []string{"a"},
+			Aliases: []string{"p"},
 			Usage:   "Push pending changes to GitHub",
 			Action: func(c *cli.Context) error {
 				pushToGitHubErr := pushToGitHub()
@@ -205,18 +216,20 @@ func main() {
 				}
 			},
 		},
-	}
+		{
+			Name:    "config",
+			Aliases: []string{"c"},
+			Usage:   "Configure github repository",
+			Action: func(c *cli.Context) error {
+				githubConfig := c.Args().Get(0)
+				err := runConfigure(githubConfig)
+				if err == nil {
+					fmt.Println("inq configured successfuly")
+				}
 
-	app.Action = func(c *cli.Context) error {
-		firstArg := c.Args().Get(0)
-		if firstArg == "config" {
-			err := runConfigure(githubConfig)
-			if err == nil {
-				fmt.Println("inq configured successfuly")
-			}
-		}
-
-		return nil
+				return nil
+			},
+		},
 	}
 
 	err := app.Run(os.Args)
