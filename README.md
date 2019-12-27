@@ -28,13 +28,13 @@ $ inq save
 ### Save note by topic
 
 ```
-$ inq save --topic=[topicName]
+$ inq --topic=[topicName] save 
 ```
 
 ### Save note by name
 
 ```
-$ inq save --name=[fileName]
+$ inq --name=[fileName] save 
 ```
 
 ### Push to GitHub

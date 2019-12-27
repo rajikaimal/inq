@@ -20,6 +20,23 @@ type config struct {
 var homeDir, err = os.UserHomeDir()
 var inqDir = filepath.Join(homeDir, "inq-notes")
 
+func checkDir(dir string) error {
+	//TODO: fix err return
+	fmt.Println("CHECKDIR")
+	fmt.Println(dir)
+	if _, err := os.Stat(dir); err == nil {
+		// path/to/whatever exists
+		fmt.Println(dir)
+		fmt.Println("Dir exists")
+	} else if os.IsNotExist(err) {
+		// path/to/whatever does *not* exist
+		os.MkdirAll(dir, os.ModePerm)
+		fmt.Println("Dir does not exist")
+	}
+
+	return nil
+}
+
 func runConfigure(githubConfig string) (err error) {
 	fmt.Println("Running config")
 	fmt.Println(githubConfig)
@@ -32,14 +49,11 @@ func runConfigure(githubConfig string) (err error) {
 
 	fmt.Println(inqDirectory)
 
-	if _, err := os.Stat(inqDirectory); err == nil {
-		// path/to/whatever exists
-		fmt.Println(inqDirectory)
-		fmt.Println("Config directory exists ...")
-	} else if os.IsNotExist(err) {
-		// path/to/whatever does *not* exist
-		os.MkdirAll(inqDirectory, os.ModePerm)
-		fmt.Println("Dir does not exist")
+	//create sub dir if it doesn't exist
+	dirCheckErr := checkDir(inqDirectory)
+
+	if dirCheckErr != nil {
+		return dirCheckErr
 	}
 
 	fmt.Println("Creating config.json ...")
@@ -93,7 +107,15 @@ func saveLocal(topicType string) error {
 		notePath = filepath.Join(inqDirectory, formattedDate)
 		notePath = notePath + ".md"
 	} else {
-		notePath = filepath.Join(inqDirectory, topicType, formattedDate)
+		dirPath := filepath.Join(inqDirectory, topicType)
+		//create sub dir if it doesn't exist
+		dirCheckErr := checkDir(dirPath)
+
+		if dirCheckErr != nil {
+			return dirCheckErr
+		}
+
+		notePath = filepath.Join(dirPath, formattedDate)
 		notePath = notePath + ".md"
 	}
 
@@ -102,6 +124,7 @@ func saveLocal(topicType string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
+
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -163,20 +186,6 @@ func main() {
 	app.Name = "inq"
 	app.Usage = ""
 	app.Version = "0.1.0"
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:        "github",
-			Value:       "default",
-			Usage:       "Configuration type",
-			Destination: &githubConfig,
-		},
-		cli.StringFlag{
-			Name:        "topic",
-			Value:       "root",
-			Usage:       "Topic type",
-			Destination: &topicType,
-		},
-	}
 
 	app.Commands = []cli.Command{
 		{
@@ -229,6 +238,21 @@ func main() {
 
 				return nil
 			},
+		},
+	}
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:        "github",
+			Value:       "default",
+			Usage:       "Configuration type",
+			Destination: &githubConfig,
+		},
+		cli.StringFlag{
+			Name:        "topic",
+			Value:       "root",
+			Usage:       "Topic type",
+			Destination: &topicType,
 		},
 	}
 
