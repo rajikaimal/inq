@@ -16,7 +16,7 @@ Take notes on GitHub with inq CLI
 - Provide repository name to inq
 
 ```
-$ inq config --github=[githubRepositoryUrl]
+$ inq config [githubRepositoryUrl]
 ```
 
 ### Save note by date
