@@ -22,8 +22,6 @@ var inqDir = filepath.Join(homeDir, "inq-notes")
 
 func checkDir(dir string) error {
 	//TODO: fix err return
-	fmt.Println("CHECKDIR")
-	fmt.Println(dir)
 	if _, err := os.Stat(dir); err == nil {
 		// path/to/whatever exists
 		fmt.Println(dir)
@@ -39,15 +37,12 @@ func checkDir(dir string) error {
 
 func runConfigure(githubConfig string) (err error) {
 	fmt.Println("Running config")
-	fmt.Println(githubConfig)
 	home, err := os.UserHomeDir()
 	inqDirectory := filepath.Join(home, "inq")
 
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(inqDirectory)
 
 	//create sub dir if it doesn't exist
 	dirCheckErr := checkDir(inqDirectory)
@@ -68,12 +63,11 @@ func runConfigure(githubConfig string) (err error) {
 		fmt.Println("Error when writing to config file")
 	}
 
-	fmt.Println(inqDirectory + "config.json")
+	fmt.Println(inqDirectory + "/config.json")
 
 	fileWriteErr := ioutil.WriteFile(inqDirectory+"/config.json", jsonFile, 0644)
 
 	if fileWriteErr != nil {
-		fmt.Println("Here")
 		fmt.Println(fileWriteErr)
 		return fileWriteErr
 	}
@@ -194,21 +188,23 @@ func main() {
 			Usage:   "Save a note",
 			Action: func(c *cli.Context) error {
 				saveLocalErr := saveLocal(topicType)
-				if saveLocalErr == nil {
-					stageChangesErr := stageChanges()
-					if stageChangesErr == nil {
-						commitChangesErr := commitChanges()
-						if commitChangesErr == nil {
-							return nil
-						} else {
-							return commitChangesErr
-						}
-					} else {
-						return stageChangesErr
-					}
-				} else {
+				if saveLocalErr != nil {
 					return saveLocalErr
 				}
+
+				stageChangesErr := stageChanges()
+
+				if stageChangesErr != nil {
+					return stageChangesErr
+				}
+
+				commitChangesErr := commitChanges()
+
+				if commitChanges != nil {
+					return commitChangesErr
+				}
+
+				return nil
 			},
 		},
 		{
@@ -217,12 +213,12 @@ func main() {
 			Usage:   "Push pending changes to GitHub",
 			Action: func(c *cli.Context) error {
 				pushToGitHubErr := pushToGitHub()
-				if pushToGitHubErr == nil {
-					fmt.Println("Pushing succesfull")
-					return nil
-				} else {
+				if pushToGitHub != nil {
 					return pushToGitHubErr
 				}
+
+				fmt.Println("Pushing succesfull")
+				return nil
 			},
 		},
 		{
@@ -232,10 +228,11 @@ func main() {
 			Action: func(c *cli.Context) error {
 				githubConfig := c.Args().Get(0)
 				err := runConfigure(githubConfig)
-				if err == nil {
-					fmt.Println("inq configured successfuly")
+				if err != nil {
+					return err
 				}
 
+				fmt.Println("inq configured successfuly")
 				return nil
 			},
 		},
