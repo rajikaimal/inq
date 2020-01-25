@@ -5,7 +5,9 @@ Take notes on GitHub with inq CLI
 ## Install
 
 ```
-
+$ go build inq.go
+$ cp inq /usr/local/bin
+$ inq
 ```
 
 ## Usage
