@@ -14,7 +14,7 @@ $ inq
 
 ### Configure
 
-- Create a repository
+- Create a repository to save notes
 - Provide repository name to inq
 
 ```
