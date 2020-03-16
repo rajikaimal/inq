@@ -1,6 +1,6 @@
 # inq
 
-Take notes on GitHub with inq CLI
+:notebook: Knowledge journal with inq CLI
 
 ## Install
 
