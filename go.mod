@@ -1,4 +1,4 @@
-module "https://github.com/rajikaimal/gh-notes"
+module "github.com/rajikaimal/inq"
 
 go 1.12
 
